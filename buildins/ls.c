@@ -1,7 +1,7 @@
 #include "../include/apue.h"
 #include <dirent.h>
 
-int main(int argc, char *argv[]) {
+int ls(int argc, char *argv[]) {
   DIR *dp;
   struct dirent *dirp;
 
@@ -15,4 +15,10 @@ int main(int argc, char *argv[]) {
 
   closedir(dp);
   exit(0);
+}
+
+// for tests
+int main(int argc, char **argv) {
+  ls(argc, argv);
+  return 0;
 }
