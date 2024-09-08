@@ -1,24 +1,40 @@
-#include "apue.h"
+// #include "acsh.h"
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+/**
+ * main - Main entry point for our program
+ * @argc: Argument count to the main
+ * @argv: Pointer to array of argument values
+ *
+ * Return: O Always success
+ */
 
 int main(int argc, char **argv) {
-  char line[MAXLINE];
+
+  (void)argc, (void)argv;
+  char *command = NULL;
+  size_t command_len = 0;
+  ssize_t output;
 
   do {
-    printf("$ ");
+    write(STDOUT_FILENO, "$ ", 2);
 
     // INPUT
+    output = getline(&command, &command_len, stdin);
+
     // EXIT
-    if (scanf("%s", line) == EOF || strcmp(line, "exit") == 0) {
+    if (output == -1) { // EOF case
       break;
     }
 
     // DEBUG
-    printf("DEBUG MESSAGE.\n\tline=%s\n", line);
+    printf("DEBUG MESSAGE.\n\tline=%s\n", command);
   } while (1);
 
   // FINALLY
-  printf("\n-----|-----|-----|-----|-----|-----|-----");
-  return 0;
+  free(command);
+  write(STDOUT_FILENO, "\n-----|-----|-----|-----|-----|-----|-----", 42);
+  return (0);
 }
