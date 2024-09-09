@@ -22,8 +22,11 @@ int main(int argc, char **argv) {
   size_t command_str_allocated = 0;
   ssize_t command_len;
 
+  char *token;
+  char **arguments;
+
   pid_t pid;
-  int status;
+  int status, i;
 
   // SIGNALS INIT
   if (signal(SIGINT, sig_int) == SIG_ERR)
@@ -38,6 +41,16 @@ int main(int argc, char **argv) {
     if (command_str[command_len - 1] == '\n')
       command_str[command_len - 1] = 0;
 
+    token = strtok(command_str, " \n");
+    arguments = malloc(sizeof(char *) * 1024);
+    i = 0;
+    while (token) {
+      arguments[i] = token;
+      token = strtok(NULL, " \n");
+      i++;
+    }
+    arguments[i] = NULL;
+
     // EXIT
     if (command_len == -1) { // EOF case
       break;
@@ -49,16 +62,20 @@ int main(int argc, char **argv) {
     } else if (pid == 0) {
 
       printf("-----|-----|-----\n"
-             "NEW PROCESS\n"
+             "NEW CHILD PROCESS\n"
              "\tPID: %lu\n"
              "\tcommand_str: %s\n"
+             "\tcommand_len: %lu\n"
              "\tcommand_str_allocated: %lu\n"
              "-----|-----|-----\n",
-             (long)getpid(), command_str, command_str_allocated);
+             (long)getpid(), command_str, command_len, command_str_allocated);
+      if (execve(arguments[0], arguments, NULL) == -1) {
+        err_sys("Error to execute command");
+      }
       exit(0);
 
     } else if ((pid = waitpid(pid, &status, 0)) < 0)
-      err_sys("error to call waitpid");
+      err_sys("Error to call waitpid");
   } while (1);
 
   // FINALLY
