@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
 
   // REPL
   do {
+    command_path = NULL;
+
     write(STDOUT_FILENO, "$ ", 2);
 
     // INPUT
@@ -66,17 +68,18 @@ int main(int argc, char **argv) {
       err_sys("error to fork process!");
     } else if (pid == 0) {
 
+      // printf("-----|-----|-----\n"
+      //        "NEW CHILD PROCESS\n"
+      //        "\tPID: %lu\n"
+      //        "\tcommand_str: %s\n"
+      //        "\tcommand_len: %lu\n"
+      //        "\tcommand_str_allocated: %lu\n"
+      //        "-----|-----|-----\n",
+      //        (long)getpid(), command_str, command_len,
+      //        command_str_allocated);
       if (execve(command_path, arguments, NULL) == -1) {
         err_sys("Error to execute command");
       }
-      printf("-----|-----|-----\n"
-             "NEW CHILD PROCESS\n"
-             "\tPID: %lu\n"
-             "\tcommand_str: %s\n"
-             "\tcommand_len: %lu\n"
-             "\tcommand_str_allocated: %lu\n"
-             "-----|-----|-----\n",
-             (long)getpid(), command_str, command_len, command_str_allocated);
       exit(0);
 
     } else if ((pid = waitpid(pid, &status, 0)) < 0)
@@ -95,6 +98,8 @@ char *get_command_path(char *file_name) {
   struct stat file_path;
   char *path_buffer = NULL;
 
+  path = malloc(strlen(path) + 2);
+  strcpy(path, getenv("PATH"));
   if (!path) {
     perror("PATH not found");
   }
@@ -102,15 +107,18 @@ char *get_command_path(char *file_name) {
   token = strtok(path, ":");
 
   while (token) {
+
     if (path_buffer) {
       free(path_buffer);
       path_buffer = NULL;
     }
+
     path_buffer = malloc(sizeof(token) + sizeof(file_name) + sizeof(char) * 2);
     if (!path_buffer) {
       perror("Error: malloc failed");
       exit(EXIT_FAILURE);
     }
+
     strcpy(path_buffer, token);
     strcat(path_buffer, "/");
     strcat(path_buffer, file_name);
@@ -124,7 +132,7 @@ char *get_command_path(char *file_name) {
   }
 
   // FINALLY
-  // free(path);
+  free(token);
   if (path_buffer)
     free(path_buffer);
 
